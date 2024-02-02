@@ -1,8 +1,39 @@
 <script>
+import axios from 'axios';
 export default {
   data(){
     return{
-      city: ""
+      city: "",
+      error: "",
+      info: null
+    }
+  },
+  computed:{
+    cityName(){
+      return "«" + this.city + "»"
+    },
+    showTemp(){
+      return "Temperature " + this.info.temp + "℃"
+    },
+    showFeelsLike(){
+      return "Feels like " + this.info.feels_like
+    },
+    showMinTemp(){
+      return "Min temperature " + this.info.temp_min + "℃"
+    },
+    showMaxTemp(){
+      return "Max temperature " + this.info.temp_max + "℃"
+    }
+  },
+  methods:{
+    getWeather(){
+      if(this.city.trim().length<2){
+        this.error = "Название города должно содержать больше 1 символа"
+        return false
+      }
+      this.error = "";
+      axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${this.city}&units=metric&appid=4166e96b493ff4aa6e54fa747352bb13`)
+      .then(res=> this.info = res.data.main)
     }
   }
 }</script>
@@ -10,14 +41,26 @@ export default {
 <template>
 <div className="wrapper">
   <h1>Weather App </h1>
-  <p>Узнать погоду в {{ city }}</p>
-  <input type="text" v-model="city" placeholder="Введите город">
-  <button>Получить погоду</button>
+  <p>What's the weather like today in {{ city ==""? "your city": cityName }}?</p>
+  <input type="text" @input="this.error = ''" v-model="city" placeholder="Enter city name">
+  <button v-if="city!=''" @click="getWeather()">Get weather</button>
+  <button disabled v-else>Enter city name</button>
+  <p class="error">{{ error }}</p>
+
+  <div v-if="info!=null">
+    <p>{{ showTemp }}</p>
+    <p>{{ showFeelsLike }}</p>
+    <p>{{ showMinTemp }}</p>
+    <p>{{ showMaxTemp }}</p>
+
+  </div>
 </div>
 </template>
 
 <style scoped>
 .wrapper{
+  text-align: center;
+  align-items: center;
   width: 900px;
   height: 500px;
   border-radius: 50px;
@@ -54,7 +97,14 @@ border-bottom-color: #f8d8ce;
   cursor: pointer;
   transition: transform 500ms ease;
 }
+.wrapper button:disabled{
+  cursor: not-allowed;
+  background-color: #645e4b;
+}
 .wrapper button:hover{
   transform: scale(1.1) translateY(-5px);
+}
+.error{
+  color: rgb(133, 24, 24);
 }
 </style>
